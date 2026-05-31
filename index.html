@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Finance Tracker</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:'Segoe UI',sans-serif;
+}
+
+body{
+    background:#f4f7fc;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    min-height:100vh;
+}
+
+.container{
+    width:90%;
+    max-width:500px;
+    background:white;
+    padding:25px;
+    border-radius:15px;
+    box-shadow:0 5px 20px rgba(0,0,0,0.1);
+}
+
+h1{
+    text-align:center;
+    margin-bottom:20px;
+    color:#333;
+}
+
+.summary{
+    display:flex;
+    justify-content:space-between;
+    margin-bottom:20px;
+    gap:10px;
+}
+
+.card{
+    flex:1;
+    padding:15px;
+    border-radius:10px;
+    text-align:center;
+    color:white;
+}
+
+.balance{
+    background:#3498db;
+}
+
+.income{
+    background:#2ecc71;
+}
+
+.expense{
+    background:#e74c3c;
+}
+
+.card h3{
+    margin-top:8px;
+}
+
+form{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+}
+
+input,select{
+    padding:12px;
+    border:1px solid #ddd;
+    border-radius:8px;
+    outline:none;
+}
+
+button{
+    padding:12px;
+    border:none;
+    border-radius:8px;
+    background:#3498db;
+    color:white;
+    cursor:pointer;
+    font-size:16px;
+}
+
+button:hover{
+    background:#2980b9;
+}
+
+h2{
+    margin-top:20px;
+    margin-bottom:10px;
+}
+
+#transactionList{
+    list-style:none;
+}
+
+.transaction{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:12px;
+    margin:8px 0;
+    border-radius:8px;
+    background:#f8f9fa;
+}
+
+.income-item{
+    border-left:5px solid #2ecc71;
+}
+
+.expense-item{
+    border-left:5px solid #e74c3c;
+}
+
+.delete-btn{
+    background:red;
+    color:white;
+    border:none;
+    padding:5px 10px;
+    border-radius:5px;
+    cursor:pointer;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>Finance Tracker</h1>
+
+<div class="summary">
+
+<div class="card balance">
+<p>Balance</p>
+<h3>₹<span id="balance">0</span></h3>
+</div>
+
+<div class="card income">
+<p>Income</p>
+<h3>₹<span id="income">0</span></h3>
+</div>
+
+<div class="card expense">
+<p>Expense</p>
+<h3>₹<span id="expense">0</span></h3>
+</div>
+
+</div>
+
+<form id="transactionForm">
+
+<input
+type="text"
+id="description"
+placeholder="Enter Description"
+required>
+
+<input
+type="number"
+id="amount"
+placeholder="Enter Amount"
+required>
+
+<select id="type">
+<option value="income">Income</option>
+<option value="expense">Expense</option>
+</select>
+
+<button type="submit">
+Add Transaction
+</button>
+
+</form>
+
+<h2>Transactions</h2>
+
+<ul id="transactionList"></ul>
+
+</div>
+
+<script>
+
+let transactions =
+JSON.parse(localStorage.getItem("transactions"))
+|| [];
+
+const form =
+document.getElementById("transactionForm");
+
+const balance =
+document.getElementById("balance");
+
+const income =
+document.getElementById("income");
+
+const expense =
+document.getElementById("expense");
+
+const transactionList =
+document.getElementById("transactionList");
+
+form.addEventListener("submit", addTransaction);
+
+function addTransaction(e){
+
+    e.preventDefault();
+
+    const description =
+    document.getElementById("description").value;
+
+    const amount =
+    Number(document.getElementById("amount").value);
+
+    const type =
+    document.getElementById("type").value;
+
+    const transaction = {
+        id: Date.now(),
+        description,
+        amount,
+        type
+    };
+
+    transactions.push(transaction);
+
+    saveData();
+    updateUI();
+
+    form.reset();
+}
+
+function updateUI(){
+
+    transactionList.innerHTML = "";
+
+    let totalIncome = 0;
+    let totalExpense = 0;
+
+    transactions.forEach(transaction => {
+
+        const li =
+        document.createElement("li");
+
+        li.classList.add("transaction");
+
+        if(transaction.type === "income"){
+            li.classList.add("income-item");
+            totalIncome += transaction.amount;
+        }else{
+            li.classList.add("expense-item");
+            totalExpense += transaction.amount;
+        }
+
+        li.innerHTML = `
+            <span>
+            ${transaction.description}
+            (₹${transaction.amount})
+            </span>
+
+            <button
+            class="delete-btn"
+            onclick="deleteTransaction(${transaction.id})">
+            X
+            </button>
+        `;
+
+        transactionList.appendChild(li);
+
+    });
+
+    income.textContent = totalIncome;
+    expense.textContent = totalExpense;
+    balance.textContent =
+    totalIncome - totalExpense;
+}
+
+function deleteTransaction(id){
+
+    transactions =
+    transactions.filter(
+        transaction => transaction.id !== id
+    );
+
+    saveData();
+    updateUI();
+}
+
+function saveData(){
+
+    localStorage.setItem(
+        "transactions",
+        JSON.stringify(transactions)
+    );
+}
+
+updateUI();
+
+</script>
+
+</body>
+</html>
